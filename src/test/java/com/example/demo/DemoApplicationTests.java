@@ -5,6 +5,7 @@ import com.example.demo.actors.ActorRepository;
 import com.example.demo.movies.Movie;
 import com.example.demo.movies.MovieRepository;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -18,7 +19,6 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
-
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -28,7 +28,7 @@ import static org.springframework.test.context.NestedTestConfiguration.Enclosing
 @Testcontainers
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = NONE)
-//@NestedTestConfiguration(INHERIT)
+@NestedTestConfiguration(INHERIT)
 class DemoApplicationTests {
 
     @Autowired
@@ -45,59 +45,59 @@ class DemoApplicationTests {
         registry.add("spring.jpa.hibernate.ddl-auto=update", () -> "create");
     }
 
-//    @Nested
-//    class ActorTests {
+    @Nested
+    class ActorTests {
 
-    @Autowired
-    ActorRepository actorRepository;
+        @Autowired
+        ActorRepository actorRepository;
 
-    @BeforeEach
-    void prepareActors() {
-        Query query = entityManager.createQuery("DELETE FROM Actor");
-        query.executeUpdate();
-        entityManager.persist(actor("Emil Eifrem"));
+        @BeforeEach
+        void prepareActors() {
+            Query query = entityManager.createQuery("DELETE FROM Actor");
+            query.executeUpdate();
+            entityManager.persist(actor("Emil Eifrem"));
+        }
+
+        @Test
+        void loads_actors() {
+            List<Actor> actors = actorRepository.findAll();
+
+            assertThat(actors).hasSize(1);
+            assertThat(actors.iterator().next().getName()).isEqualTo("Emil Eifrem");
+        }
+
+        private Actor actor(String name) {
+            Actor actor = new Actor();
+            actor.setName(name);
+            return actor;
+        }
     }
 
-    @Test
-    void loads_actors() {
-        List<Actor> actors = actorRepository.findAll();
+    @Nested
+    class MovieTests {
 
-        assertThat(actors).hasSize(1);
-        assertThat(actors.iterator().next().getName()).isEqualTo("Emil Eifrem");
+        @Autowired
+        MovieRepository movieRepository;
+
+        @BeforeEach
+        void prepareMovies() {
+            Query query = entityManager.createQuery("DELETE FROM Movie");
+            query.executeUpdate();
+            entityManager.persist(movie("The Matrix"));
+        }
+
+        @Test
+        void loads_movies() {
+            List<Movie> movies = movieRepository.findAll();
+
+            assertThat(movies).hasSize(1);
+            assertThat(movies.iterator().next().getTitle()).isEqualTo("The Matrix");
+        }
+
+        private Movie movie(String title) {
+            Movie movie = new Movie();
+            movie.setTitle(title);
+            return movie;
+        }
     }
-
-    private Actor actor(String name) {
-        Actor actor = new Actor();
-        actor.setName(name);
-        return actor;
-    }
-//    }
-//
-//    @Nested
-//    class MovieTests {
-
-    @Autowired
-    MovieRepository movieRepository;
-
-    @BeforeEach
-    void prepareMovies() {
-        Query query = entityManager.createQuery("DELETE FROM Movie");
-        query.executeUpdate();
-        entityManager.persist(movie("The Matrix"));
-    }
-
-    @Test
-    void loads_movies() {
-        List<Movie> movies = movieRepository.findAll();
-
-        assertThat(movies).hasSize(1);
-        assertThat(movies.iterator().next().getTitle()).isEqualTo("The Matrix");
-    }
-
-    private Movie movie(String title) {
-        Movie movie = new Movie();
-        movie.setTitle(title);
-        return movie;
-    }
-//    }
 }
